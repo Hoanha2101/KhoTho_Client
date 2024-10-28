@@ -1,186 +1,144 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { TEInput, TERipple } from "tw-elements-react";
-import { useNavigate } from 'react-router-dom';
-import './Register.css'; // Nhập file CSS
+import "./Register.css";
 
 export default function Register() {
-  // State để quản lý dữ liệu form
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [address, setAddress] = useState("");
-  const [error, setError] = useState(""); // State để quản lý lỗi
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-
-  // Hàm xử lý đăng ký
   const handleRegister = async (event) => {
-    event.preventDefault(); // Ngăn chặn reload trang
-
-    const userData = {
-      fullName,
-      email,
-      password,
-      phoneNumber,
-      address,
-      userType: 1, // Set mặc định userType là 1
-    };
+    event.preventDefault();
+    const userData = { fullName, email, password, phoneNumber, address, userType: 1 };
 
     try {
-      const response = await fetch("https://localhost:7062/api/Auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
+      const response = await axios.post("https://localhost:7062/api/Auth/register", userData, {
+        headers: { "Content-Type": "application/json" },
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Đăng ký thành công:", data);
-        // Chuyển hướng đến trang đăng nhập sau khi đăng ký thành công
-        navigate("/login"); // Điều hướng đến trang đăng nhập (điều chỉnh đường dẫn nếu cần)
+      if (response.status === 200) {
+        alert("Đăng ký thành công!");
+        navigate("/login");
       } else {
-        const errorData = await response.json();
-        setError("Lỗi đăng ký: " + errorData.message); // Hiển thị lỗi cho người dùng
-        console.error("Lỗi đăng ký:", errorData);
+        setError("Lỗi đăng ký: " + response.data.message);
       }
     } catch (error) {
-      setError("Đã xảy ra lỗi: " + error.message); // Hiển thị lỗi kết nối cho người dùng
-      console.error("Đã xảy ra lỗi:", error);
+      setError("Đã xảy ra lỗi: " + error.message);
     }
   };
 
   return (
-    <section className="h-full bg-neutral-200 dark:bg-neutral-700">
-      <div className="container h-full p-10">
-        <div className="g-6 flex h-full flex-wrap items-center justify-center text-neutral-800 dark:text-neutral-200">
-          <div className="w-full">
-            <div className="block rounded-lg bg-white shadow-lg dark:bg-neutral-800">
-              <div className="g-0 lg:flex lg:flex-wrap">
-                {/* <!-- Left column container--> */}
-                <div className="px-4 md:px-0 lg:w-6/12">
-                  <div className="md:mx-6 md:p-12">
-                    {/* <!--Logo--> */}
-                    <div className="text-center">
-                      <img
-                        className="mx-auto w-48"
-                        src="https://tecdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/lotus.webp"
-                        alt="logo"
-                      />
-                      <h4 className="mb-12 mt-1 pb-1 text-xl font-semibold">
-                        We are The Lotus Team
-                      </h4>
-                    </div>
+    <section className="flex items-center justify-center min-h-screen bg-neutral-200 dark:bg-neutral-700">
+      <div className="w-full max-w-md p-10">
+        <div className="bg-white shadow-lg dark:bg-neutral-800 rounded-lg">
+          <div className="p-8">
+            <div className="text-center mb-8">
+              <img
+                className="mx-auto w-24"
+                src="..\src\Assets\logokhotho.png"
+                alt="logo"
+              />
+              <h4 className="mt-4 text-xl font-semibold">VIỆC LÀM GẤP, THỢ TỚI TẤP</h4>
+            </div>
 
-                    <form onSubmit={handleRegister}>
-                      <p className="mb-4">Please register an account</p>
-                      {/* <!--Full Name input--> */}
-                      <TEInput
-                        type="text"
-                        label="Full Name"
-                        className="mb-4"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                      />
+            <form onSubmit={handleRegister}>
+              <p className="mb-4 text-center">Vui lòng đăng ký tài khoản mới</p>
 
-                      {/* <!--Email input--> */}
-                      <TEInput
-                        type="email"
-                        label="Email"
-                        className="mb-4"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
-
-                      {/* <!--Password input--> */}
-                      <TEInput
-                        type="password"
-                        label="Password"
-                        className="mb-4"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                      />
-
-                      {/* <!--Phone Number input--> */}
-                      <TEInput
-                        type="text"
-                        label="Phone Number"
-                        className="mb-4"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                      />
-
-                      {/* <!--Address input--> */}
-                      <TEInput
-                        type="text"
-                        label="Address"
-                        className="mb-4"
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                      />
-
-                      {/* <!--Submit button--> */}
-                      <div className="mb-12 pb-1 pt-1 text-center">
-                        <TERipple rippleColor="light" className="w-full">
-                          <button
-                            className="mb-3 inline-block w-full rounded px-6 pb-2 pt-2.5 text-xs font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_rgba(0,0,0,0.2)] transition duration-150 ease-in-out hover:shadow-[0_8px_9px_-4px_rgba(0,0,0,0.1),0_4px_18px_0_rgba(0,0,0,0.2)] focus:shadow-[0_8px_9px_-4px_rgba(0,0,0,0.1),0_4px_18px_0_rgba(0,0,0,0.2)] focus:outline-none focus:ring-0 active:shadow-[0_8px_9px_-4px_rgba(0,0,0,0.1),0_4px_18px_0_rgba(0,0,0,0.2)]"
-                            type="submit"
-                            style={{
-                              background:
-                                "linear-gradient(to right, #ee7724, #d8363a, #dd3675, #b44593)",
-                            }}
-                          >
-                            Sign up
-                          </button>
-                        </TERipple>
-
-                        {/* <!--Thông báo lỗi--> */}
-                        {error && <p className="text-red-500">{error}</p>}
-
-                        {/* <!--Forgot password link--> */}
-                        <a href="#!">Terms and conditions</a>
-                      </div>
-
-                      {/* <!--Register button--> */}
-                      <div className="flex items-center justify-between pb-6">
-                        <p className="mb-0 mr-2">Have an account?</p>
-                        <TERipple rippleColor="light">
-                          <button
-                            type="button"
-                            className="inline-block rounded border-2 border-danger px-6 pb-[6px] pt-2 text-xs font-medium uppercase leading-normal text-danger transition duration-150 ease-in-out hover:border-danger-600 hover:bg-neutral-500 hover:bg-opacity-10 hover:text-danger-600 focus:border-danger-600 focus:text-danger-600 focus:outline-none focus:ring-0 active:border-danger-700 active:text-danger-700 dark:hover:bg-neutral-100 dark:hover:bg-opacity-10"
-                            onClick={() => navigate("/login")}
-                          >
-                            Login
-                          </button>
-                        </TERipple>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-
-                {/* <!-- Right column container with background and description--> */}
-                <div
-                  className="flex items-center rounded-b-lg lg:w-6/12 lg:rounded-r-lg lg:rounded-bl-none"
-                  style={{
-                    background:
-                      "linear-gradient(to right, #ee7724, #d8363a, #dd3675, #b44593)",
-                  }}
-                >
-                  <div className="px-4 py-6 text-white md:mx-6 md:p-12">
-                    <h4 className="mb-6 text-xl font-semibold">
-                      We are more than just a company
-                    </h4>
-                    <p className="text-sm">
-                      Lorem ipsum dolor sit amet, consectetur adipisicing elit,
-                      sed do eiusmod tempor incididunt ut labore et dolore magna
-                      aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-                      ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                    </p>
-                  </div>
-                </div>
+              <div className="input-container mb-4">
+                <label className="input-label" htmlFor="fullName">Họ và tên</label>
+                <TEInput
+                  type="text"
+                  id="fullName"
+                  placeholder="Nhập họ và tên"
+                  className="input-field"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
               </div>
+
+              <div className="input-container mb-4">
+                <label className="input-label" htmlFor="email">Email</label>
+                <TEInput
+                  type="email"
+                  id="email"
+                  placeholder="Nhập email"
+                  className="input-field"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+
+              <div className="input-container mb-4">
+                <label className="input-label" htmlFor="password">Mật khẩu</label>
+                <TEInput
+                  type="password"
+                  id="password"
+                  placeholder="Nhập mật khẩu"
+                  className="input-field"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+
+              <div className="input-container mb-4">
+                <label className="input-label" htmlFor="phoneNumber">Số điện thoại</label>
+                <TEInput
+                  type="text"
+                  id="phoneNumber"
+                  placeholder="Nhập số điện thoại"
+                  className="input-field"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                />
+              </div>
+
+              <div className="input-container mb-4">
+                <label className="input-label" htmlFor="address">Địa chỉ</label>
+                <TEInput
+                  type="text"
+                  id="address"
+                  placeholder="Nhập địa chỉ"
+                  className="input-field"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                />
+              </div>
+
+              <div className="text-center mb-4">
+                <TERipple rippleColor="light" className="w-full">
+                  <button
+                    className="inline-block w-full rounded px-6 py-2.5 text-xs font-medium uppercase leading-normal text-white shadow-lg transition duration-150 ease-in-out"
+                    style={{
+                      background:
+                        "linear-gradient(to right, #ee7724, #d8363a, #dd3675, #b44593)",
+                    }}
+                    type="submit"
+                  >
+                    Đăng ký
+                  </button>
+                </TERipple>
+              </div>
+
+              {error && <p className="text-red-500 text-center mt-4">{error}</p>}
+            </form>
+
+            <div className="flex items-center justify-between pb-6">
+              <p className="mb-0 mr-2 text-sm">Bạn đã có tài khoản?</p>
+              <TERipple rippleColor="light">
+                <button
+                  type="button"
+                  className="inline-block rounded border-2 border-danger px-6 py-2 text-xs font-medium uppercase leading-normal text-danger transition duration-150 ease-in-out hover:border-danger-600 hover:bg-neutral-500 hover:bg-opacity-10 hover:text-danger-600"
+                  onClick={() => navigate("/login")}
+                >
+                  Đăng nhập
+                </button>
+              </TERipple>
             </div>
           </div>
         </div>

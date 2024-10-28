@@ -16,7 +16,7 @@ const NavBar = () => {
           <li className="menuList text-[#6f6f6f] hover:text-blueColor">About</li>
           <li className="menuList text-[#6f6f6f] hover:text-blueColor">Contact</li>
           <Link to="/login" className="menuList text-[#6f6f6f] hover:text-blueColor">Login</Link>
-          <li className="menuList text-[#6f6f6f] hover:text-blueColor">Register</li>
+          <Link to="/register" className="menuList text-[#6f6f6f] hover:text-blueColor">Register</Link>
 
         </div>
     </div>
