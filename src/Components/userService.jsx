@@ -1,9 +1,8 @@
 import axios from "axios";
-
-const API_URL = "http://localhost:7062";
+import { API_ENDPOINT } from "../services/config";
 
 const axiosInstance = axios.create({
-    baseURL: API_URL,
+    baseURL: API_ENDPOINT,
 });
 
 // Tự động thêm token JWT vào header Authorization

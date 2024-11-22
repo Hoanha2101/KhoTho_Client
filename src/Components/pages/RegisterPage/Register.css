@@ -79,3 +79,14 @@ a:hover {
         border-bottom-right-radius: .3rem;
     }
 }
+
+.register-page {
+    background-image: url('../../Assets/bgr-login.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }

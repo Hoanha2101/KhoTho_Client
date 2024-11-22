@@ -13,24 +13,18 @@ import {
   Tooltip,
   ThemeProvider,
   createTheme,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
 } from '@mui/material';
 import { Delete, Edit, Add } from '@mui/icons-material';
 import Sidebar from '../Dashboard/Sidebar';
 import axios from 'axios';
+import { API_ENDPOINT } from "../../../services/config";
 
-const API_URL = 'https://localhost:7062/api/WorkerJobTypes';
-const WORKERS_API_URL = 'https://localhost:7062/api/Workers';
-const JOBTYPES_API_URL = 'https://localhost:7062/api/JobTypes';
+// const API_URL = 'https://localhost:7062/api/JobTypes';
+const API_URL = `${API_ENDPOINT}/api/JobTypes`;
 
 const JobTypeManagement = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [tableData, setTableData] = useState([]);
-  const [workers, setWorkers] = useState([]);
-  const [jobTypes, setJobTypes] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
 
   const theme = createTheme({
@@ -44,40 +38,40 @@ const JobTypeManagement = () => {
     },
   });
 
+  // useEffect(() => {
+  //   fetchJobTypes();
+  // }, []);
+
   useEffect(() => {
+    const fetchData = async () => {
+      await fetchJobTypes();
+      await fetchWorkerJobTypes();
+    };
+  
     fetchData();
   }, []);
+  
 
-  const fetchData = async () => {
+  const fetchJobTypes = async () => {
     try {
-      const [workerJobTypesRes, workersRes, jobTypesRes] = await Promise.all([
-        axios.get(API_URL),
-        axios.get(WORKERS_API_URL),
-        axios.get(JOBTYPES_API_URL)
-      ]);
-
-      setTableData(workerJobTypesRes.data);
-      setWorkers(workersRes.data);
-      setJobTypes(jobTypesRes.data);
+      const response = await axios.get(API_URL);
+      setTableData(response.data);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching job types:', error);
     }
   };
 
   const handleCreateNewRow = async (values) => {
     try {
       const newJobType = {
-        workerJobTypeId: 0,
-        workerId: values.workerId,
-        jobTypeId: values.jobTypeId,
-        jobType: null,
-        worker: null
+        ...values,
+        jobTypeId: 0,
       };
-      
+
       const response = await axios.post(API_URL, newJobType);
-      await fetchData(); // Refresh all data
+      setTableData([...tableData, response.data]);
     } catch (error) {
-      console.error('Error creating job type:', error);
+      console.error('Error creating job type:', error.response ? error.response.data : error.message);
     }
   };
 
@@ -85,17 +79,16 @@ const JobTypeManagement = () => {
     if (Object.keys(validationErrors).length) return;
 
     try {
-      const jobTypeId = row.original.workerJobTypeId;
+      const jobTypeId = row.original.jobTypeId;
       const updatedJobType = {
-        workerJobTypeId: jobTypeId,
-        workerId: values.workerId,
-        jobTypeId: values.jobTypeId,
-        jobType: null,
-        worker: null
+        ...values,
+        jobTypeId: jobTypeId,
       };
       
       await axios.put(`${API_URL}/${jobTypeId}`, updatedJobType);
-      await fetchData(); // Refresh all data
+      const updatedData = [...tableData];
+      updatedData[row.index] = updatedJobType;
+      setTableData(updatedData);
       exitEditingMode();
     } catch (error) {
       console.error('Error updating job type:', error);
@@ -104,109 +97,76 @@ const JobTypeManagement = () => {
 
   const handleDeleteRow = useCallback(
     async (row) => {
-      if (!confirm(`Are you sure you want to delete this job type?`)) {
+      if (!confirm(`Are you sure you want to delete ${row.getValue('jobTypeName')}`)) {
         return;
       }
 
       try {
-        const jobTypeId = row.original.workerJobTypeId;
+        const jobTypeId = row.original.jobTypeId;
         await axios.delete(`${API_URL}/${jobTypeId}`);
-        await fetchData(); // Refresh all data
+        setTableData(tableData.filter(jobType => jobType.jobTypeId !== jobTypeId));
       } catch (error) {
         console.error('Error deleting job type:', error);
       }
     },
-    [],
+    [tableData],
   );
 
-  // Calculate workers count per job type
-  const workersPerJobType = useMemo(() => {
-    const counts = {};
-    tableData.forEach(item => {
-      counts[item.jobTypeId] = (counts[item.jobTypeId] || 0) + 1;
-    });
-    return counts;
-  }, [tableData]);
-
+  const fetchWorkerJobTypes = async () => {
+    try {
+      const response = await axios.get(`${API_ENDPOINT}/api/WorkerJobTypes`);
+      // const response = await axios.get('https://localhost:7062/api/WorkerJobTypes');
+      const workerJobTypes = response.data;
+  
+      // Đếm số lượng nhân viên cho mỗi Job Type
+      const jobTypeWorkerCounts = workerJobTypes.reduce((acc, item) => {
+        acc[item.jobTypeId] = (acc[item.jobTypeId] || 0) + 1;
+        return acc;
+      }, {});
+  
+      // Cập nhật số lượng nhân viên vào bảng Job Types
+      setTableData((prevData) =>
+        prevData.map((jobType) => ({
+          ...jobType,
+          numberOfWorker: jobTypeWorkerCounts[jobType.jobTypeId] || 0,
+        }))
+      );
+    } catch (error) {
+      console.error('Error fetching worker job types:', error);
+    }
+  };
+  
   const columns = useMemo(
     () => [
       {
-        accessorKey: 'workerJobTypeId',
+        accessorKey: 'jobTypeId',
         header: 'ID',
         enableEditing: false,
         size: 80,
       },
       {
-        accessorKey: 'workerId',
-        header: 'Worker',
-        size: 200,
-        Cell: ({ row }) => {
-          const worker = workers.find(w => w.workerId === row.original.workerId);
-          return worker ? worker.user.fullName : row.original.workerId;
-        },
-        Edit: ({ column, row, table }) => (
-          <FormControl fullWidth>
-            <InputLabel>Worker</InputLabel>
-            <Select
-              label="Worker"
-              value={row.original.workerId}
-              onChange={(e) => {
-                const value = e.target.value;
-                table.setEditingRow({
-                  ...row,
-                  original: { ...row.original, workerId: value }
-                });
-              }}
-            >
-              {workers.map((worker) => (
-                <MenuItem key={worker.workerId} value={worker.workerId}>
-                  {worker.user.fullName}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        ),
+        accessorKey: 'jobTypeName',
+        header: 'Job Type Name',
+        size: 140,
       },
       {
-        accessorKey: 'jobTypeId',
-        header: 'Job Type',
-        size: 200,
-        Cell: ({ row }) => {
-          const jobType = jobTypes.find(j => j.jobTypeId === row.original.jobTypeId);
-          return jobType ? (
-            <div>
-              {jobType.jobTypeName}
-              <div style={{ fontSize: '0.8em', color: '#666' }}>
-                ({workersPerJobType[jobType.jobTypeId] || 0} workers)
-              </div>
-            </div>
-          ) : row.original.jobTypeId;
-        },
-        Edit: ({ column, row, table }) => (
-          <FormControl fullWidth>
-            <InputLabel>Job Type</InputLabel>
-            <Select
-              label="Job Type"
-              value={row.original.jobTypeId}
-              onChange={(e) => {
-                const value = e.target.value;
-                table.setEditingRow({
-                  ...row,
-                  original: { ...row.original, jobTypeId: value }
-                });
-              }}
-            >
-              {jobTypes.map((jobType) => (
-                <MenuItem key={jobType.jobTypeId} value={jobType.jobTypeId}>
-                  {jobType.jobTypeName}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        ),
+        accessorKey: 'numberOfWorker',
+        header: 'Number of Workers',
+        size: 140,
       },
+      // {
+      //   accessorKey: 'description',
+      //   header: 'Description',
+      //   size: 200,
+      // },
+      {
+        accessorKey: 'pricePerHour',
+        header: 'Price Per Hour',
+        size: 120,
+      },
+      
     ],
-    [workers, jobTypes, workersPerJobType],
+    [],
   );
 
   return (
@@ -269,8 +229,6 @@ const JobTypeManagement = () => {
             open={createModalOpen}
             onClose={() => setCreateModalOpen(false)}
             onSubmit={handleCreateNewRow}
-            workers={workers}
-            jobTypes={jobTypes}
           />
         </div>
       </div>
@@ -278,14 +236,22 @@ const JobTypeManagement = () => {
   );
 };
 
-const CreateNewJobTypeModal = ({ open, columns, onClose, onSubmit, workers, jobTypes }) => {
-  const [values, setValues] = useState({
-    workerId: '',
-    jobTypeId: ''
-  });
+const CreateNewJobTypeModal = ({ open, columns, onClose, onSubmit }) => {
+  const [values, setValues] = useState(() =>
+    columns.reduce((acc, column) => {
+      acc[column.accessorKey ?? ''] = '';
+      return acc;
+    }, {}),
+  );
 
   const handleSubmit = () => {
-    onSubmit(values);
+    // Convert numeric fields to numbers
+    const processedValues = {
+      ...values,
+      pricePerHour: Number(values.pricePerHour),
+      numberOfWorker: Number(values.numberOfWorker)
+    };
+    onSubmit(processedValues);
     onClose();
   };
 
@@ -302,35 +268,21 @@ const CreateNewJobTypeModal = ({ open, columns, onClose, onSubmit, workers, jobT
               mt: 2,
             }}
           >
-            <FormControl fullWidth>
-              <InputLabel>Worker</InputLabel>
-              <Select
-                label="Worker"
-                value={values.workerId}
-                onChange={(e) => setValues({ ...values, workerId: e.target.value })}
-              >
-                {workers.map((worker) => (
-                  <MenuItem key={worker.workerId} value={worker.workerId}>
-                    {worker.user.fullName}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            {columns.map((column) => {
+              if (column.accessorKey === 'jobTypeId') return null;
 
-            <FormControl fullWidth>
-              <InputLabel>Job Type</InputLabel>
-              <Select
-                label="Job Type"
-                value={values.jobTypeId}
-                onChange={(e) => setValues({ ...values, jobTypeId: e.target.value })}
-              >
-                {jobTypes.map((jobType) => (
-                  <MenuItem key={jobType.jobTypeId} value={jobType.jobTypeId}>
-                    {jobType.jobTypeName}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+              return (
+                <TextField
+                  key={column.accessorKey}
+                  label={column.header}
+                  name={column.accessorKey}
+                  type={['pricePerHour', 'numberOfWorker'].includes(column.accessorKey) ? 'number' : 'text'}
+                  onChange={(e) =>
+                    setValues({ ...values, [e.target.name]: e.target.value })
+                  }
+                />
+              );
+            })}
           </Stack>
         </form>
       </DialogContent>

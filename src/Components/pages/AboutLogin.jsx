@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Footer from '../FooterDiv/Footer';
-import NavBar from '../NavBar/NavBar';
+import NavBarLogin from '../NavBarLogin/NavBar'; 
 import Gallery from '../Gallery/Gallery';
 import Logo from "../common/logo";
 import "./styles/About.css";
@@ -20,14 +20,15 @@ import FastfoodOutlinedIcon from '@mui/icons-material/FastfoodOutlined';
 import MoreHorizTwoToneIcon from '@mui/icons-material/MoreHorizTwoTone';
 
 const About = () => {
-  const [stayLogo, setStayLogo] = useState(false);
-	const [logoSize, setLogoSize] = useState(80);
-	const [oldLogoSize, setOldLogoSize] = useState(80); 
+    const [stayLogo, setStayLogo] = useState(false);
+    const [logoSize, setLogoSize] = useState(80);
+    const [oldLogoSize, setOldLogoSize] = useState(80); 
+    
 
 
-	useEffect(() => {
-		window.scrollTo(0, 0);
-	}, []);
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -61,26 +62,11 @@ const About = () => {
 		border: stayLogo ? "1px solid white" : "none",
 		borderRadius: stayLogo ? "50%" : "none",
 		boxShadow: stayLogo ? "0px 4px 10px rgba(0, 0, 0, 0.25)" : "none",
-	};
-
-  // useEffect(() => {
-  //   // Kiểm tra giá trị authToken trong localStorage mỗi khi component được render
-  // const token = localStorage.getItem("authToken");
-  //   console.log("Token fetched:", token);
-  //   setIsLoggedIn(!!token);
-  // }, []);
-
-  // const handleLogout = () => {
-  //   localStorage.removeItem("authToken");
-  //   setIsLoggedIn(false);
-  // };
-
-  // console.log("Auth Token:", localStorage.getItem("authToken"));
-  // console.log("isLoggedIn:", isLoggedIn);  
+	}; 
 
   return (
     <div className='w-[85%] m-auto white-color-sl'>
-    <NavBar /> 
+    <NavBarLogin/> 
       
       <React.Fragment>
         <div className="page-content">

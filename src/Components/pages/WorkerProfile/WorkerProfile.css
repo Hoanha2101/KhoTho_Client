@@ -27,6 +27,15 @@
   font-family: 'Arial', sans-serif; /* Font dễ đọc */
 }
 
+.popUp-right {
+  width: 35%; /* Width of the right block */
+  position: absolute; /* Position it absolutely within modal-content */
+  right: 0; /* Attach it to the right side of modal-content */
+  top: 0; /* Align it to the top of modal-content */
+  height: 100%; /* Take full height of modal-content */
+  padding-left: 20px; /* Add space between content */
+}
+
 /* Popup header */
 .schedule-popup-header {
   font-size: 1.8rem;
@@ -139,5 +148,150 @@ textarea.schedule-input {
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+
+/* Tổng thể hộp hiển thị */
+.schedule-container {
+  background-color: #f8f9fa; /* Màu nền sáng */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  text-align: left;
+  font-family: Arial, sans-serif;
+}
+
+/* Nhãn (Label) */
+.schedule-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* Giá trị cố định */
+.schedule-fixed-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #007bff;
+  background-color: #e9f5ff;
+  padding: 10px;
+  border-radius: 8px;
+  display: inline-block;
+  width: fit-content;
+  margin-bottom: 15px;
+  border: 1px solid #007bff;
+}
+
+/* Hiển thị rõ ràng từng phần */
+.schedule-group {
+  margin-bottom: 20px;
+}
+
+.schedule-group:last-child {
+  margin-bottom: 0;
+}
+
+
+/* Worker Bookings Section */
+.worker-bookings {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+/* Header of Worker Bookings */
+.worker-bookings-header {
+  font-size: 18px;
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+/* Empty State (No bookings) */
+.worker-bookings p {
+  color: #999;
+  font-style: italic;
+}
+
+/* Block for each booking time */
+.block-hourDay {
+  background-color: #fff;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+  transition: background-color 0.3s ease;
+}
+
+.block-hourDay:hover {
+  background-color: #f0f0f0;
+}
+
+/* Time Formatting */
+.block-hourDay p {
+  font-size: 16px;
+  color: #333;
+  font-weight: bold;
+}
+
+
+/* Worker Booking Display */
+.worker-bookings {
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.worker-bookings-header {
+  font-size: 18px;
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.block-hourDay {
+  background-color: #fff;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+  transition: background-color 0.3s ease;
+}
+
+.block-hourDay:hover {
+  background-color: #f0f0f0;
+}
+
+.block-hourDay p {
+  font-size: 16px;
+  color: #333;
+  font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modal-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .schedule-form, .popUp-right {
+    width: 100%;
+  }
+
+  .popUp-right {
+    position: relative;
+    height: auto; /* Remove full height on small screens */
   }
 }

@@ -6,6 +6,7 @@ import { Snackbar, Alert, IconButton } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { API_ENDPOINT } from "../../../services/config";
 import "./ForgotPassword.css";
+import bgrLogin from "../../../Assets/bgr-login.jpg";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -148,7 +149,7 @@ export default function ForgotPassword() {
         severity: "success"
       });
       
-      setTimeout(() => navigate("/login"), 2000);
+      setTimeout(() => navigate("/khotho/login"), 2000);
     } catch (error) {
       setNotification({
         open: true,
@@ -159,7 +160,15 @@ export default function ForgotPassword() {
   };
 
   return (
-    <section className="flex items-center justify-center min-h-screen bg-neutral-200 dark:bg-neutral-700">
+    <section className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat"
+      style={{ 
+        backgroundImage: `url(${bgrLogin})`,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundBlendMode: 'overlay',
+        filter: 'brightness(1)',
+        opacity: 0.85,
+      }}
+    >
       <Snackbar
         open={notification.open}
         autoHideDuration={3000}
@@ -191,14 +200,14 @@ export default function ForgotPassword() {
             <form onSubmit={(e) => e.preventDefault()}>
               {step === 1 ? (
                 <div className="input-container mb-4">
-                  <label className="input-label" htmlFor="email">
+                  <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">
                     Email
                   </label>
-                  <TEInput
+                  <input
                     type="email"
                     id="email"
                     placeholder="Nhập email của bạn"
-                    className="input-field"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white/80"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
@@ -229,7 +238,7 @@ export default function ForgotPassword() {
                     <label className="input-label" htmlFor="otp">
                       Mã OTP
                     </label>
-                    <TEInput
+                    <input
                       type="text"
                       id="otp"
                       placeholder="Nhập mã OTP"
@@ -252,7 +261,7 @@ export default function ForgotPassword() {
                       Mật khẩu mới
                     </label>
                     <div className="relative">
-                      <TEInput
+                      <input
                         type={showPassword ? "text" : "password"}
                         id="newPassword"
                         placeholder="Nhập mật khẩu mới"
@@ -291,7 +300,7 @@ export default function ForgotPassword() {
 
               <div className="text-center mt-4">
                 <a
-                  onClick={() => navigate("/login")}
+                  onClick={() => navigate("/khotho/login")}
                   className="text-sm text-neutral-600 cursor-pointer hover:text-neutral-700 transition duration-150 ease-in-out"
                 >
                   Quay lại đăng nhập!

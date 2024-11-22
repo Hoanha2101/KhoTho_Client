@@ -22,6 +22,7 @@ import {
   StarRate,
   History
 } from '@mui/icons-material';
+import { API_ENDPOINT } from "../../../services/config";
 
 const CustomerDashboard = () => {
   const [userData, setUserData] = useState(null);

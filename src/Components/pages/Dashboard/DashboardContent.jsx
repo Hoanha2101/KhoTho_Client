@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -23,7 +24,10 @@ ChartJS.register(
   Legend
 );
 
+import { API_ENDPOINT } from "../../../services/config";
+
 const DashboardContent = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [users, setUsers] = useState([]);
   const [workers, setWorkers] = useState([]);
@@ -31,12 +35,30 @@ const DashboardContent = () => {
   const [reviews, setReviews] = useState([]);
   const [workersByJobType, setWorkersByJobType] = useState({});
   const [workerJobTypes, setWorkerJobTypes] = useState([]);
-  
-  
 
   useEffect(() => {
+    // Kiểm tra xác thực admin
+    const checkAuth = () => {
+      const token = localStorage.getItem("authToken");
+      const userType = localStorage.getItem("userType");
+
+      if (!token || userType !== "0") {
+        navigate("/khotho/login");
+        return false;
+      }
+      return true;
+    };
+
     const fetchData = async () => {
+      if (!checkAuth()) return;
+
       try {
+        const token = localStorage.getItem("authToken");
+        const headers = {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        };
+
         const [
           usersRes,
           workersRes,
@@ -44,12 +66,17 @@ const DashboardContent = () => {
           reviewsRes,
           workerJobTypesRes,
         ] = await Promise.all([
-          fetch("https://localhost:7062/api/Users"),
-          fetch("https://localhost:7062/api/Workers"),
-          fetch("https://localhost:7062/api/JobTypes"),
-          fetch("https://localhost:7062/api/Reviews"),
-          fetch("https://localhost:7062/api/WorkerJobTypes"),
+          fetch(`${API_ENDPOINT}/api/Users`, { headers }),
+          fetch(`${API_ENDPOINT}/api/Workers`, { headers }),
+          fetch(`${API_ENDPOINT}/api/JobTypes`, { headers }),
+          fetch(`${API_ENDPOINT}/api/Reviews`, { headers }),
+          fetch(`${API_ENDPOINT}/api/WorkerJobTypes`, { headers }),
         ]);
+
+        // Kiểm tra response status
+        if (!usersRes.ok || !workersRes.ok || !jobTypesRes.ok || !reviewsRes.ok || !workerJobTypesRes.ok) {
+          throw new Error('Unauthorized access');
+        }
 
         const usersData = await usersRes.json();
         const workersData = await workersRes.json();
@@ -76,12 +103,15 @@ const DashboardContent = () => {
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
+        if (error.message === 'Unauthorized access') {
+          navigate('/khotho/login');
+        }
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [navigate]);
 
   const calculateAverageRating = () => {
     if (reviews.length === 0) return 0;

@@ -1,5 +1,5 @@
 // import React from 'react'
-import NavBar from '../NavBar/NavBar'
+import NavBar from '../NavBarLogin/NavBar'
 import ContactForm from '../Contact/Contact';
 import Social from '../Contact/Social';
 import Footer from '../FooterDiv/Footer'
@@ -8,7 +8,7 @@ import { FaGift, FaBox, FaStar, FaCalendarAlt } from 'react-icons/fa';
 import React from 'react';
 import "./styles/Contact2.css"
 
-const Contact = () => {
+const ContactLogin = () => {
   // const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // useEffect(() => {
@@ -178,4 +178,4 @@ const Contact = () => {
   )
 }
 
-export default Contact
+export default ContactLogin

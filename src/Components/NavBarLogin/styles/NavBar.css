@@ -40,7 +40,7 @@
     position: relative;
     color: #ff9800;
     font-weight: bold;
-    align-items: center; /* Ensures both icon and text are centered vertically */
+    align-items: center; 
     transition: transform 0.3s ease, color 0.3s ease;
 }
 

@@ -1,28 +1,32 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Footer from '../../FooterDiv/Footer';
-import NavBar from '../../NavBar/NavBar';
+import NavBar from '../../NavBarLogin/NavBar';
 import './RegisterWorker.css';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import * as config from "../../../services/config";
 import { API_ENDPOINT } from "../../../services/config";
 
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
+
 const RegisterWorker = () => {
+    const USERnow = JSON.parse(localStorage.getItem("userData"));
+    const token = localStorage.getItem("authToken");
+    // Sử dụng useState để khởi tạo giá trị cho các trường
+    const [name, setName] = useState(USERnow ? USERnow.fullName : "");
+    const [phone, setPhone] = useState(USERnow ? USERnow.phoneNumber : "");
+    const [email, setEmail] = useState(USERnow ? USERnow.email : "");
+    const [address, setAddress] = useState(USERnow ? USERnow.address : "");
 
     const navigate = useNavigate();
-
 
     const [profileImage, setProfileImage] = useState(null);
     const [activeTab, setActiveTab] = useState('basicInfo'); // State to track active tab
     const [frontCCCD, setFrontCCCD] = useState(null);  // State for front image
     const [backCCCD, setBackCCCD] = useState(null);    // State for back image
 
-
-    const [name, setName] = useState('');
-    const [surname, setSurname] = useState('');
-    const [phone, setPhone] = useState('');
-    const [email, setEmail] = useState('');
-    const [address, setAddress] = useState('');
     const [nationality, setNationality] = useState('Vietnam'); // default value
     const [industryGroup, setIndustryGroup] = useState('');
     const [specialization, setSpecialization] = useState('');
@@ -31,26 +35,46 @@ const RegisterWorker = () => {
 
     const [Workers, setWorkers] = useState(null)
 
+    const [jobTypes, setJobTypes] = useState([]); // Lưu trữ danh sách job types
+
+    // Lấy dữ liệu job types từ API
+    useEffect(() => {
+      const fetchJobTypes = async () => {
+          try {
+              const response = await axios.get(`${API_ENDPOINT}/api/JobTypes`, {
+                  headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${token}`,
+                  },
+              });
+              setJobTypes(response.data); // Lưu dữ liệu job types vào state
+          } catch (error) {
+              console.error("Error fetching job types:", error);
+          }
+      };
+      fetchJobTypes();
+  }, [token]);
+
     const handleSubmit_ = async (e) => {
       e.preventDefault();
     
       try {
         const token = localStorage.getItem('authToken');
         if (!token) {
-          alert('Bạn cần đăng nhập để thực hiện thao tác này!');
+          toast.error('Bạn cần đăng nhập để thực hiện thao tác này!', { position: "top-left", autoClose: 3000 });
           return;
         }
 
         const userData = localStorage.getItem('userData');
         if (!userData) {
-          alert('Không tìm thấy userData. Vui lòng đăng nhập lại!');
+          toast.error('Không tìm thấy userData. Vui lòng đăng nhập lại!', { position: "top-left", autoClose: 3000 });
           return;
         }
 
         const parsedUserData = JSON.parse(userData);
         const userId = parsedUserData.userId;
         if (!userId) {
-          alert('Không tìm thấy userId. Vui lòng đăng nhập lại!');
+          toast.error('Không tìm thấy userId. Vui lòng đăng nhập lại!', { position: "top-left", autoClose: 3000 });
           return;
         }
 
@@ -75,11 +99,11 @@ const RegisterWorker = () => {
           }
         );
   
-        alert('Đăng ký thành công!');
-        setTimeout(() => navigate("/ordertracking"), 1000);
+        toast.success("Đăng ký thành công!", { position: "top-left", autoClose: 3000 });
+        setTimeout(() => navigate("/khotho/workers"), 1000);
       } catch (error) {
         console.error('Error:', error);
-        alert('Có lỗi xảy ra, vui lòng thử lại!');
+        toast.error('Có lỗi xảy ra, vui lòng thử lại!', { position: "top-left", autoClose: 3000 });
       }
     };
     
@@ -113,6 +137,7 @@ const RegisterWorker = () => {
 
   return (
     <div className="w-[85%] m-auto white-color-sl">
+      <ToastContainer position="top-right" autoClose={3000} />
         <NavBar />
         <div className='body'>
             <div className='title'>
@@ -163,7 +188,7 @@ const RegisterWorker = () => {
                 className={`tab cursor-pointer pb-2 ${activeTab === 'introductionInfo' ? 'border-b-2 border-blue-500' : ''}`}
                 onClick={() => handleTabChange('introductionInfo')}
               >
-                Introduction
+                Giới thiệu
               </div>
 
               <div
@@ -180,23 +205,19 @@ const RegisterWorker = () => {
               <div className="form-container">
                 <div className="form-row mb-4">
                   <label className="block text-gray-600">Tên</label>
-                  <input type="text" placeholder="Khải Hoàn" className="input-field" value={name} onChange={(e) => setName(e.target.value)}/>
-                </div>
-                <div className="form-row mb-4">
-                  <label className="block text-gray-600">Họ</label>
-                  <input type="text" placeholder="Hà" className="input-field" value={surname} onChange={(e) => setSurname(e.target.value)}/>
+                  <input type="text" className="input-field" value={name} onChange={(e) => setName(e.target.value)}/>
                 </div>
                 <div className="form-row mb-4">
                   <label className="block text-gray-600">Số điện thoại</label>
-                  <input type="text" placeholder="0123456789" className="input-field" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                  <input type="text" className="input-field" value={phone} onChange={(e) => setPhone(e.target.value)} />
                 </div>
                 <div className="form-row mb-4">
                   <label className="block text-gray-600">Email</label>
-                  <input type="email" placeholder="tcook@apple.com" className="input-field" value={email} onChange={(e) => setEmail(e.target.value)}/>
+                  <input type="email" className="input-field" value={email} onChange={(e) => setEmail(e.target.value)}/>
                 </div>
                 <div className="form-row mb-4">
                   <label className="block text-gray-600">Nơi thường trú</label>
-                  <input type="text" placeholder="Xã Nhơn Tân - Thị xã An Nhơn - Tỉnh Bình Định" className="input-field" value={address} onChange={(e) => setAddress(e.target.value)}/>
+                  <input type="text" className="input-field" value={address} onChange={(e) => setAddress(e.target.value)}/>
                 </div>
                 <div className="form-row mb-4">
                   <label className="block text-gray-600">Quốc tịch</label>
@@ -206,10 +227,6 @@ const RegisterWorker = () => {
                     <option value="Canada">Canada</option>
                   </select>
                 </div>
-                <button className="update-button bg-blue-600 text-white rounded-md px-4 py-2 w-full mt-4"
-                onClick={handleSubmit_}>
-                  Xác nhận thông tin
-                </button>
               </div>
             )}
 
@@ -219,14 +236,16 @@ const RegisterWorker = () => {
                     {/* Option for Industry Group (Dropdown) */}
                     <div className="form-row mb-4">
                     <label className="block text-gray-600">Nhóm ngành</label>
-                    <select className="input-field" value={industryGroup} onChange={(e) => setIndustryGroup(e.target.value)}>
-                        <option value="">Chọn nhóm ngành</option>
-                        <option value="1">Dọn dẹp</option>
-                        <option value="2">Giữ trẻ</option>
-                        <option value="3">Sửa chữa</option>
-                        <option value="4">Nấu ăn</option>
-                        <option value="5">Lái xe</option>
-                        <option value="6">Giao hàng</option>
+                    <select
+                      className="input-field"
+                      value={industryGroup}
+                      onChange={(e) => setIndustryGroup(e.target.value)}>
+                      <option value="">Chọn nhóm ngành</option>
+                      {jobTypes.map((jobType) => (
+                          <option key={jobType.jobTypeId} value={jobType.jobTypeId}>
+                              {jobType.jobTypeName}
+                          </option>
+                      ))}
                     </select>
                     </div>
 
@@ -281,6 +300,10 @@ const RegisterWorker = () => {
                     </div>
                   )}
                 </div>
+                <button className="update-button bg-blue-600 text-white rounded-md px-4 py-2 w-full mt-4"
+                onClick={handleSubmit_}>
+                  Xác nhận thông tin
+                </button>
               </div>
             )}
 

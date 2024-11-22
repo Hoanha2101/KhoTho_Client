@@ -26,7 +26,7 @@ const Search = () => {
 
   const navigate = useNavigate();
   const handleViewProfile = (workerId) => {
-    navigate(`/worker-profile/${workerId}`);
+    navigate(`/khotho/worker-profile/${workerId}`);
   };
 
   const ratingRanges = [
@@ -36,15 +36,32 @@ const Search = () => {
     { label: "4-5 sao", min: 4, max: 5 },
   ];
 
+  const token = localStorage.getItem("authToken");
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
         const [jobTypesResponse, workersResponse, workerJobTypesResponse] =
           await Promise.all([
-            axios.get(`${API_ENDPOINT}/api/JobTypes`),
-            axios.get(`${API_ENDPOINT}/api/Workers`),
-            axios.get(`${API_ENDPOINT}/api/WorkerJobTypes`),
+            axios.get(`${API_ENDPOINT}/api/JobTypes`, {
+              headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+              },
+          }),
+            axios.get(`${API_ENDPOINT}/api/Workers`, {
+              headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+              },
+          }),
+            axios.get(`${API_ENDPOINT}/api/WorkerJobTypes`, {
+              headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+              },
+          }),
           ]);
 
         setJobTypes(jobTypesResponse.data);

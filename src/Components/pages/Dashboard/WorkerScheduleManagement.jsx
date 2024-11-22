@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
-  MenuItem,
   Stack,
   TextField,
   Tooltip,
@@ -20,9 +19,9 @@ import Sidebar from '../Dashboard/Sidebar';
 import axios from 'axios';
 import { API_ENDPOINT } from "../../../services/config";
 
-const API_URL = `${API_ENDPOINT}/api/Users`;
-
-const UserManagement = () => {
+// const API_URL = 'https://localhost:7062/api/WorkerSchedule';
+const API_URL = `${API_ENDPOINT}/api/WorkerSchedule`;
+const WorkerScheduleManagement = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [tableData, setTableData] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
@@ -38,35 +37,30 @@ const UserManagement = () => {
     },
   });
 
-  // Fetch users data
   useEffect(() => {
-    fetchUsers();
+    fetchSchedules();
   }, []);
 
-  const fetchUsers = async () => {
+  const fetchSchedules = async () => {
     try {
       const response = await axios.get(API_URL);
       setTableData(response.data);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Error fetching schedules:', error);
     }
   };
 
   const handleCreateNewRow = async (values) => {
     try {
-      const newUser = {
+      const newSchedule = {
         ...values,
-        userId: 0,
-        createdAt: new Date().toISOString(),
-        profilePicture: values.profilePicture || null,
-        userType: parseInt(values.userType) // Ensure userType is a number
+        scheduleId: 0,
       };
 
-      console.log('Creating new user:', newUser);
-      const response = await axios.post(API_URL, newUser);
+      const response = await axios.post(API_URL, newSchedule);
       setTableData([...tableData, response.data]);
     } catch (error) {
-      console.error('Error creating user:', error.response ? error.response.data : error.message);
+      console.error('Error creating schedule:', error);
     }
   };
 
@@ -74,117 +68,77 @@ const UserManagement = () => {
     if (Object.keys(validationErrors).length) return;
 
     try {
-      const userId = row.original.userId;
-      const updatedUser = {
+      const scheduleId = row.original.scheduleId;
+      const updatedSchedule = {
         ...values,
-        userId: userId,
-        createdAt: row.original.createdAt,
-        profilePicture: values.profilePicture || null,
-        userType: parseInt(values.userType) // Ensure userType is a number
+        scheduleId: scheduleId,
       };
       
-      await axios.put(`${API_URL}/${userId}`, updatedUser);
+      await axios.put(`${API_URL}/${scheduleId}`, updatedSchedule);
       const updatedData = [...tableData];
-      updatedData[row.index] = updatedUser;
+      updatedData[row.index] = updatedSchedule;
       setTableData(updatedData);
       exitEditingMode();
     } catch (error) {
-      console.error('Error updating user:', error);
+      console.error('Error updating schedule:', error);
     }
   };
 
   const handleDeleteRow = useCallback(
     async (row) => {
-      if (!confirm(`Are you sure you want to delete ${row.getValue('fullName')}`)) {
+      if (!confirm(`Are you sure you want to delete this schedule?`)) {
         return;
       }
 
       try {
-        const userId = row.original.userId;
-        await axios.delete(`${API_URL}/${userId}`);
-        setTableData(tableData.filter(user => user.userId !== userId));
+        const scheduleId = row.original.scheduleId;
+        await axios.delete(`${API_URL}/${scheduleId}`);
+        setTableData(tableData.filter(schedule => schedule.scheduleId !== scheduleId));
       } catch (error) {
-        console.error('Error deleting user:', error);
+        console.error('Error deleting schedule:', error);
       }
     },
     [tableData],
   );
 
-  const USER_TYPES = {
-    ADMIN: 'Admin',
-    WORKER: 'Worker',
-    CUSTOMER: 'Customer'
-  };
-
-  const USER_TYPE_VALUES = {
-    [USER_TYPES.ADMIN]: 0,
-    [USER_TYPES.WORKER]: 2,
-    [USER_TYPES.CUSTOMER]: 1
-  };
-
   const columns = useMemo(
     () => [
       {
-        accessorKey: 'userId',
+        accessorKey: 'scheduleId',
         header: 'ID',
         enableEditing: false,
         size: 80,
       },
       {
-        accessorKey: 'fullName',
-        header: 'Full Name',
-        size: 140,
+        accessorKey: 'userId',
+        header: 'Worker ID',
+        size: 100,
       },
       {
-        accessorKey: 'email',
-        header: 'Email',
+        accessorKey: 'date',
+        header: 'Date',
         size: 140,
+        Cell: ({ cell }) => new Date(cell.getValue()).toLocaleDateString(),
       },
       {
-        accessorKey: 'passwordHash',
-        header: 'Password',
-        size: 140,
-        enableColumnFilter: false,
-        enableGlobalFilter: false,
-        Cell: () => '********', // Hide password in the table
-      },
-      {
-        accessorKey: 'phoneNumber',
-        header: 'Phone Number',
+        accessorKey: 'startTime',
+        header: 'Start Time',
         size: 120,
       },
       {
-        accessorKey: 'address',
-        header: 'Address',
-        size: 200,
+        accessorKey: 'endTime',
+        header: 'End Time',
+        size: 120,
       },
       {
-        accessorKey: 'userType',
-        header: 'User Type',
-        muiTableBodyCellEditTextFieldProps: {
-          select: true,
-          children: Object.entries(USER_TYPE_VALUES).map(([label, value]) => (
-            <MenuItem key={value} value={value}>
-              {label}
-            </MenuItem>
-          )),
-        },
-        Cell: ({ cell }) => {
-          const userTypeValue = cell.getValue();
-          return Object.entries(USER_TYPE_VALUES).find(([, value]) => value === userTypeValue)?.[0] || '';
-        },
-      },
-      {
-        accessorKey: 'createdAt',
-        header: 'Created At',
-        enableEditing: false,
-        Cell: ({ cell }) => new Date(cell.getValue()).toLocaleDateString(),
+        accessorKey: 'status',
+        header: 'Status',
+        size: 120,
       },
     ],
     [],
   );
 
-  // Rest of your component remains the same
   return (
     <ThemeProvider theme={theme}>
       <div className="flex h-screen bg-gray-100">
@@ -235,12 +189,12 @@ const UserManagement = () => {
                   variant="contained"
                   startIcon={<Add />}
                 >
-                  Create New User
+                  Create New Schedule
                 </Button>
               )}
             />
           </Box>
-          <CreateNewUserModal
+          <CreateNewScheduleModal
             columns={columns}
             open={createModalOpen}
             onClose={() => setCreateModalOpen(false)}
@@ -252,7 +206,7 @@ const UserManagement = () => {
   );
 };
 
-const CreateNewUserModal = ({ open, columns, onClose, onSubmit }) => {
+const CreateNewScheduleModal = ({ open, columns, onClose, onSubmit }) => {
   const [values, setValues] = useState(() =>
     columns.reduce((acc, column) => {
       acc[column.accessorKey ?? ''] = '';
@@ -261,18 +215,13 @@ const CreateNewUserModal = ({ open, columns, onClose, onSubmit }) => {
   );
 
   const handleSubmit = () => {
-    // Convert userType to number before submitting
-    const processedValues = {
-      ...values,
-      userType: values.userType ? parseInt(values.userType) : 1 // Default to Customer (1) if not specified
-    };
-    onSubmit(processedValues);
+    onSubmit(values);
     onClose();
   };
 
   return (
     <Dialog open={open}>
-      <DialogTitle textAlign="center">Create New User</DialogTitle>
+      <DialogTitle textAlign="center">Create New Schedule</DialogTitle>
       <DialogContent>
         <form onSubmit={(e) => e.preventDefault()}>
           <Stack
@@ -284,39 +233,21 @@ const CreateNewUserModal = ({ open, columns, onClose, onSubmit }) => {
             }}
           >
             {columns.map((column) => {
-              // Skip userId and createdAt fields
-              if (column.accessorKey === 'userId' || column.accessorKey === 'createdAt') {
+              if (column.accessorKey === 'scheduleId') {
                 return null;
               }
 
-              // Special handling for password field
-              if (column.accessorKey === 'passwordHash') {
-                return (
-                  <TextField
-                    key={column.accessorKey}
-                    label="Password"
-                    name={column.accessorKey}
-                    type="password"
-                    onChange={(e) =>
-                      setValues({ ...values, [e.target.name]: e.target.value })
-                    }
-                  />
-                );
-              }
-
-              // Regular fields
               return (
                 <TextField
                   key={column.accessorKey}
                   label={column.header}
                   name={column.accessorKey}
-                  select={column.muiTableBodyCellEditTextFieldProps?.select}
+                  type={column.accessorKey.includes('date') ? 'date' : 
+                        column.accessorKey.includes('time') ? 'time' : 'text'}
                   onChange={(e) =>
                     setValues({ ...values, [e.target.name]: e.target.value })
                   }
-                >
-                  {column.muiTableBodyCellEditTextFieldProps?.children}
-                </TextField>
+                />
               );
             })}
           </Stack>
@@ -325,11 +256,11 @@ const CreateNewUserModal = ({ open, columns, onClose, onSubmit }) => {
       <DialogActions sx={{ p: '1.25rem' }}>
         <Button onClick={onClose}>Cancel</Button>
         <Button color="primary" onClick={handleSubmit} variant="contained">
-          Create User
+          Create Schedule
         </Button>
       </DialogActions>
     </Dialog>
   );
 };
 
-export default UserManagement;
+export default WorkerScheduleManagement;

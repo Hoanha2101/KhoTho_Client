@@ -1,0 +1,29 @@
+/* BookingManagement.css */
+.booking-management {
+    padding: 24px;
+  }
+  
+  .booking-management h1 {
+    margin-bottom: 24px;
+  }
+  
+  .ant-table-wrapper {
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .ant-btn {
+    margin-right: 8px;
+  }
+  
+  .ant-tag {
+    min-width: 80px;
+    text-align: center;
+  }
+  
+  .ant-modal-body {
+    padding: 24px;
+  }
+  

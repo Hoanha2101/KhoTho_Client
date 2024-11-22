@@ -5,6 +5,7 @@ import { TEInput, TERipple } from "tw-elements-react";
 import { Snackbar, Alert, IconButton } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { API_ENDPOINT } from "../../../services/config";
+import bgrLogin from "../../../Assets/bgr-login.jpg";
 import "./Register.css";
 
 export default function Register() {
@@ -49,13 +50,15 @@ export default function Register() {
         }
       );
 
+      console.log("Response:", response);
+
       if (response.status === 200) {
         setNotification({
           open: true,
           message: "Đăng ký thành công!",
           severity: "success",
         });
-        setTimeout(() => navigate("/login"), 2000);
+        setTimeout(() => navigate("/khotho/login"), 2000);
       } else {
         setNotification({
           open: true,
@@ -73,7 +76,16 @@ export default function Register() {
   };
 
   return (
-    <section className="flex items-center justify-center min-h-screen bg-neutral-200 dark:bg-neutral-700">
+    <section 
+      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat"
+      style={{ 
+        backgroundImage: `url(${bgrLogin})`,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundBlendMode: 'overlay',
+        filter: 'brightness(1)',
+        opacity: 0.85,
+      }}
+    >
       <Snackbar
         open={notification.open}
         autoHideDuration={3000}
@@ -90,61 +102,63 @@ export default function Register() {
         </Alert>
       </Snackbar>
 
-      <div className="w-full max-w-md p-10">
-        <div className="bg-white shadow-lg dark:bg-neutral-800 rounded-lg">
+      <div className="w-full max-w-md">
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg overflow-hidden">
           <div className="p-8">
             <div className="text-center mb-8">
               <img
-                className="mx-auto w-24"
-                src="..\src\Assets\logokhotho.png"
+                className="mx-auto w-24 h-24 object-contain"
+                src="../src/Assets/logokhotho.png"
                 alt="logo"
               />
-              <h4 className="mt-4 text-xl font-semibold">
+              <h4 className="mt-4 text-2xl font-bold text-gray-800">
                 VIỆC LÀM GẤP, THỢ TỚI TẤP
               </h4>
             </div>
 
-            <form onSubmit={handleRegister}>
-              <p className="mb-4 text-center">Vui lòng đăng ký tài khoản mới</p>
+            <form className="space-y-6" onSubmit={handleRegister}>
+              <p className="text-center text-gray-600">
+                Vui lòng đăng ký tài khoản của bạn
+              </p>
 
-              <div className="input-container mb-4">
-                <label className="input-label" htmlFor="fullName">
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Họ và tên
                 </label>
-                <TEInput
+                <input
                   type="text"
                   id="fullName"
                   placeholder="Nhập họ và tên"
-                  className="input-field"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white/80"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                 />
               </div>
 
-              <div className="input-container mb-4">
-                <label className="input-label" htmlFor="email">
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email
                 </label>
-                <TEInput
+                <input
                   type="email"
                   id="email"
                   placeholder="Nhập email"
-                  className="input-field"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white/80"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
 
-              <div className="input-container mb-4">
-                <label className="input-label" htmlFor="password">
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Mật khẩu
                 </label>
                 <div className="relative">
-                  <TEInput
+                  <input
                     type={showPassword ? "text" : "password"}
                     id="password"
                     placeholder="Nhập mật khẩu"
-                    className="input-field"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white/80 pr-10"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -164,34 +178,36 @@ export default function Register() {
                   </div>
                 </div>
               </div>
+              
 
-              <div className="input-container mb-4">
-                <label className="input-label" htmlFor="phoneNumber">
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Số điện thoại
                 </label>
-                <TEInput
+                <input
                   type="text"
                   id="phoneNumber"
                   placeholder="Nhập số điện thoại"
-                  className="input-field"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white/80"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                 />
               </div>
 
-              <div className="input-container mb-4">
-                <label className="input-label" htmlFor="address">
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Địa chỉ
                 </label>
-                <TEInput
+                <input
                   type="text"
                   id="address"
                   placeholder="Nhập địa chỉ"
-                  className="input-field"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white/80"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                 />
               </div>
+              
 
               <div className="text-center mb-4">
                 <TERipple rippleColor="light" className="w-full">
@@ -215,7 +231,7 @@ export default function Register() {
                 <button
                   type="button"
                   className="inline-block rounded border-2 border-danger px-6 py-2 text-xs font-medium uppercase leading-normal text-danger transition duration-150 ease-in-out hover:border-danger-600 hover:bg-neutral-500 hover:bg-opacity-10 hover:text-danger-600"
-                  onClick={() => navigate("/login")}
+                  onClick={() => navigate("/khotho/login")}
                 >
                   Đăng nhập
                 </button>

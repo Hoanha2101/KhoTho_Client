@@ -1,33 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import Footer from '../../FooterDiv/Footer';
-import NavBar from '../../NavBar/NavBar';
+import NavBar from '../../NavBarLogin/NavBar';
 import Search from '../../SearchNOFilter/Search'
-// import axios from "axios";
+import axios from "axios";
 
-// import {
-//     Container,
-//     Grid,
-//     Paper,
-//     Avatar,
-//     Typography,
-//     Button,
-//     Box,
-//     Card,
-//     CardContent,
-//     Rating,
-//     Divider,
-//     Chip,
-//     Stack,
-//     IconButton,
-//   } from "@mui/material";
-// import { useParams } from "react-router-dom";
-// import { useNavigate } from "react-router-dom";
+import { API_ENDPOINT } from "../../../services/config";
+
 import * as config from "../../../services/config";
 import "./OrderTracking.css"
 
+import { useParams, useLocation } from "react-router-dom";
 
 const OrderTracking = () => {
-
+    const [jobTypeMapping, setJobTypeMapping] = useState({});
+    
     const [isModalOpen, setModalOpen] = useState(false);
     const [isRatingStep, setRatingStep] = useState(false);
     const [rating, setRating] = useState(0);
@@ -35,7 +21,101 @@ const OrderTracking = () => {
     const [isCompleted, setIsCompleted] = useState(false);
     const [isBoxCompleted, setIsBoxCompleted] = useState(false);
     const [isEndRating, setIsEndRating] = useState(false);
-    
+
+    const [loading, setLoading] = useState(true); // Trạng thái loading
+    const userDataString = JSON.parse(localStorage.getItem("userData"));
+    const token = localStorage.getItem('authToken')
+    const location = useLocation();
+    const booking_id = location.state;
+
+    const [dataBookingOrder, setDataBookingOrder] = useState(null);
+    const [dataWorkerOrder, setDataWorkerOrder] = useState(null);
+
+    const removeVietnameseTones = (str) => {
+        return str
+            .normalize("NFD") // Chuẩn hóa chuỗi Unicode
+            .replace(/[\u0300-\u036f]/g, "") // Loại bỏ dấu
+            .replace(/đ/g, "d") // Chuyển đổi chữ đ
+            .replace(/Đ/g, "D") // Chuyển đổi chữ Đ
+            .replace(/\s+/g, "") // Xóa khoảng trắng
+            .toUpperCase(); // Chuyển tất cả chữ thành viết hoa
+    };
+
+
+    useEffect(() => {
+        const fetchBookingDetails = async () => {
+            try {
+                const response_book = await axios.get(`${API_ENDPOINT}/api/Booking/${booking_id}`, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                console.log("+++++",response_book.data)
+
+                const response_worker = await axios.get(
+                    `${API_ENDPOINT}/api/Workers/${response_book.data.workerID}`,
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                const response_jobtype = await axios.get(
+                    `${API_ENDPOINT}/api/JobTypes`,
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                const jobTypeData =  response_jobtype.data;
+
+                const mapping = jobTypeData.reduce((acc, job) => {
+                    acc[job.jobTypeId] = job.jobTypeName;
+                    return acc;
+                }, {});
+
+                setJobTypeMapping(mapping);
+                setDataBookingOrder(response_book.data);
+                setDataWorkerOrder(response_worker.data);
+                setLoading(false);
+            } catch (error) {
+                console.error("Error fetching booking details:", error);
+                setLoading(false);
+            }
+        };
+        fetchBookingDetails()
+    }, [booking_id, token]);
+
+    if (loading) {
+        return (
+            <div className="loading-screen">
+                <p>Đang tải dữ liệu...</p>
+                {/* Bạn có thể thay thế bằng một spinner hoặc hiệu ứng loading khác */}
+            </div>
+        );
+    }
+
+    if (!dataBookingOrder || !dataWorkerOrder) {
+        return (
+            <div className="error-screen">
+                <p>Không thể tải thông tin đơn hàng. Vui lòng thử lại sau.</p>
+            </div>
+        );
+    }
+
+    const WORKER_name = dataWorkerOrder.user.fullName
+    const WORKER_address = dataWorkerOrder.user.address
+    // const WORKER_jobType = dataWorkerOrder.user.userType
+    const WORKER_phone = dataWorkerOrder.user.phoneNumber
+    const WORKER_EXP = dataWorkerOrder.experienceYears
+
     const handleConfirm = () => {
         setIsBoxCompleted(true);
         
@@ -43,11 +123,11 @@ const OrderTracking = () => {
 
     const handleOpenModal = () => {
         setModalOpen(true);
-        setIsEndRating(true);
     }
     const handleCloseModal = () => {
         setModalOpen(false);
         setRatingStep(false);
+        setIsBoxCompleted(false)
         setRating(0);
         setComment('');
     };
@@ -56,54 +136,100 @@ const OrderTracking = () => {
         setRatingStep(true);
         setIsCompleted(true);
     }
+    console.log(dataBookingOrder)
+    const handleSubmitRating = async () => {
+        try {
 
-    const handleSubmitRating = () => {
-        console.log('Rating:', rating);
-        console.log('Comment:', comment);
-        handleCloseModal();
+            const payload = {
+                workerId: dataBookingOrder.workerID,  
+                customerId: dataBookingOrder.customerID,  
+                rating: rating,  
+                comments: comment,  
+            };
+    
+            // Gửi POST request
+            const response_rating = await axios.post(
+                `${API_ENDPOINT}/api/Reviews`, 
+                payload,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`, 
+                    },
+                }
+            );
 
+            const status = "Completed"; 
+            const response_status = await axios.put(
+                `${API_ENDPOINT}/api/Booking/${booking_id}/status`,  
+                `${status}`, 
+                {
+                    headers: {
+                        'Content-Type': 'application/json',  
+                        'Authorization': `Bearer ${token}`,  
+                    }
+                }
+            );
+
+
+
+
+    
+            setIsEndRating(true);  
+            handleCloseModal();  
+        } catch (error) {
+            console.error("Lỗi khi gửi đánh giá:", error);
+        }
     };
 
-    // const { workerId } = useParams();
-    // const [workerData, setWorkerData] = useState(null);
-    // const [loading, setLoading] = useState(true);
-    // const [feedbacks, setFeedbacks] = useState([]);
+    const getStepClass = (status, step) => {
+        if (status === "Rejected") {
+          return step === 1 ? "completed" : "rejected"; // Mốc 1 xanh, các mốc còn lại đỏ
+        }
+      
+        if (status === "Completed" && step <= 4) {
+          return "completed"; // Tất cả các mốc xanh khi Completed
+        }
+      
+        if (status === "Accepted" && step <= 3) {
+          return "completed"; // Mốc 1, 2, 3 xanh khi Accepted
+        }
+      
+        if (status === "Pending" && step === 1) {
+          return "completed"; // Mốc 1 xanh khi Pending
+        }
+      
+        return "active"; // Các mốc còn lại chưa hoàn thành
+      };
+      
+      const getStepIcon = (status, step) => {
+        if (status === "Rejected") {
+          return step === 1 ? "✔" : "✖"; // Mốc 1 dấu ✔, các mốc còn lại dấu X
+        }
+      
+        if (status === "Completed" && step <= 4) {
+          return "✔"; // Dấu tích cho tất cả mốc khi Completed
+        }
+      
+        if (status === "Accepted" && step <= 3) {
+          return "✔"; // Dấu tích cho mốc 1, 2, 3 khi Accepted
+        }
+      
+        if (status === "Pending" && step === 1) {
+          return "✔"; // Dấu tích cho mốc 1 khi Pending
+        }
+      
+        return "!"; // Dấu chấm than cho mốc chưa hoàn thành
+      };
+      
+      const progressStepColor = (status, step) => {
+        if (status === "Rejected") {
+          return step === 1 ? "green" : "red"; // Mốc 1 xanh, các mốc còn lại đỏ
+        }
+      
+        return "green"; // Màu xanh khi hoàn thành
+      };
 
-    // useEffect(() => {
-    //     const fetchWorkerDetails = async () => {
-    //     setLoading(true);
-    //     try {
-    //         const response = await axios.get(`${API_ENDPOINT}/api/Workers/${workerId}`);
-    //         setWorkerData(response.data);
-    //     } catch (error) {
-    //         console.error("Error fetching worker details:", error);
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    //     };
-
-    //     fetchWorkerDetails();
-    // }, [workerId]);
-
-    // const handleAddFeedback = (newFeedback) => {
-    //     setFeedbacks([...feedbacks, newFeedback]);
-    // };
-
-    // if (loading) {
-    //     return (
-    //     <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-    //         <Typography variant="h5">Loading...</Typography>
-    //     </Box>
-    //     );
-    // }
-
-    // if (!workerData) {
-    //     return (
-    //     <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-    //         <Typography variant="h5">No worker data found.</Typography>
-    //     </Box>
-    //     );
-    // }
 
     return (
         <div className="w-[85%] m-auto white-color-sl">
@@ -120,59 +246,55 @@ const OrderTracking = () => {
 
                 <div className='progressBlock'>
                     <div className='progressTitle'>
-                        <h3 className="progressTitle-content" data-wow-delay="0.3s">Tiến độ</h3>
+                    <h3 className="progressTitle-content" data-wow-delay="0.3s">Tiến độ</h3>
                     </div>
                     <div className="progressContainer">
-                        <div className="progressStep completed">
-                            <div className="stepIcon">✔</div>
-                            <span className="stepLabel">Booking</span>
-                        </div>
+                    {[...Array(4)].map((_, index) => {
+                        const step = index + 1;
+                        const statusClass = getStepClass(dataBookingOrder.status, step);
+                        const stepIcon = getStepIcon(dataBookingOrder.status, step);
+                        const stepColor = progressStepColor(dataBookingOrder.status);
 
-                        <div className="connector"></div>
-
-                        <div className="progressStep completed">
-                            <div className="stepIcon">✔</div>
-                            
-                            <span className="stepLabel">Đã xác nhận</span>
-                        </div>
-
-                        <div className="connector"></div>
-
-                        <div className="progressStep completed">
-                            <div className="stepIcon">✔</div>
-                            <span className="stepLabel">Đang thực hiện</span>
-                        </div>
-
-                        <div className="connector"></div>
-
-                        <div className={`progressStep ${isCompleted ? "completed" : "active"}`}>
-                            <div className="stepIcon">{isCompleted ? "✔" : "4"}</div>
-                            <span className="stepLabel">Hoàn thành</span>
-                        </div>
+                        return (
+                        <React.Fragment key={step}>
+                            <div className={`progressStep ${statusClass}`} style={{ color: stepColor }}>
+                            <div className="stepIcon">{stepIcon}</div>
+                            <span className="stepLabel">
+                                {step === 1 ? "Booking" : step === 2 ? "Đã xác nhận" : step === 3 ? "Đang thực hiện" : "Hoàn thành"}
+                            </span>
+                            </div>
+                            {step < 4 && <div className="connector"></div>}
+                        </React.Fragment>
+                        );
+                    })}
                     </div>
                 </div>
 
                 <div className="header">
                     <div className='header-left'>
                         <span className="totalAmount-title">Mã đơn:</span>
-                        <span className="totalAmount">FHAL3OV0AAT2NF</span>
+                        <span className="totalAmount">{dataBookingOrder.bookingID}-{removeVietnameseTones(WORKER_name)}</span>
                     </div>
                     <div className='header-right'>
                         <div className='Amount-Block'>
                             <span className="totalAmount-title">Tổng số tiền</span>
-                            <span className="totalAmount">đ̲200.000</span>
+                            <span className="totalAmount">đ̲{dataBookingOrder.totalAmount}</span>
                         </div>
                         <div className='button-block'>
-                            {!isCompleted && (
+                            {dataBookingOrder.status !== ("Rejected" && "Completed") && (
+                            <>
+                                {!isCompleted && (
                                 <button className="placeOrderButton" onClick={handleConfirm}>
-                                Xác nhận hoàn thành
+                                    Xác nhận hoàn thành
                                 </button>
-                            )}
+                                )}
 
-                            {!isEndRating && (
-                            <button className="placeOrderButton" onClick={handleOpenModal}>
-                                Đánh giá
-                            </button>
+                                {!isEndRating && (
+                                <button className="placeOrderButton" onClick={handleOpenModal}>
+                                    Đánh giá
+                                </button>
+                                )}
+                            </>
                             )}
                         </div>
                     </div>
@@ -190,8 +312,8 @@ const OrderTracking = () => {
                                 {/* <a href="#" className="editLink">Edit</a> */}
                             </div>
                             <div className="cardContent">
-                                <p>Hà Khải Hoàn</p>
-                                <p>hoan21012003@gmail.com</p>
+                                <p>{userDataString.fullName}</p>
+                                <p>{userDataString.email}</p>
                             </div>
                         </div>
 
@@ -201,12 +323,9 @@ const OrderTracking = () => {
                                 {/* <a href="#" className="editLink">Edit</a> */}
                             </div>
                             <div className="cardContent">
-                                <p>Trần Anh Tuấn</p>
-                                <p>Xóm Dừa</p>
-                                <p>Thôn Nam Tượng 1</p>
-                                <p>Xã Nhơn Tân - Thị Xã An Nhơn - Tỉnh Bình Định</p>
-                                <p>Việt Nam</p>
-                                <p>0987654321</p>
+                                <p>{WORKER_name}</p>
+                                <p>{WORKER_address}</p>
+                                <p>{WORKER_phone}</p>
                             </div>
                         </div>
 
@@ -216,11 +335,8 @@ const OrderTracking = () => {
                                 {/* <a href="#" className="editLink">Edit</a> */}
                             </div>
                             <div className="cardContent">
-                                <p>Xóm Phúc Hậu</p>
-                                <p>Thôn Nam Tượng 3</p>
-                                <p>Xã Nhơn Tân - Thị Xã An Nhơn - Tỉnh Bình Định</p>
-                                <p>Việt Nam</p>
-                                <p>0356295910</p>
+                                <p>{userDataString.address}</p>
+                                <p>{userDataString.phoneNumber}</p>
                             </div>
                         </div>
 
@@ -242,9 +358,9 @@ const OrderTracking = () => {
                 <div className="itemSection">
                     <div className="tableHeader">
                         <span>Thợ</span>
-                        <span>Khu vực</span>
+                        <span>Địa chỉ</span>
                         <span>Nhóm ngành</span>
-                        <span>Số lượng</span>
+                        <span>Tổng giờ</span>
                         <span>Đơn giá</span>
                         <span>Thành tiền</span>
                     </div>
@@ -253,16 +369,16 @@ const OrderTracking = () => {
                         <div className="itemInfo">
                             <img src="src\Assets\about\worker.png" alt="item" className="itemImage" />
                             <div>
-                                <p>Trần Tuấn Anh</p>
-                                <p>5 Năm kinh nghiệm</p>
+                                <p>{WORKER_name}</p>
+                                <p>{WORKER_EXP} Năm kinh nghiệm</p>
                                 {/* <a href="#" className="removeLink">Remove</a> */}
                             </div>
                         </div>
-                        <span>Bình Định</span>
-                        <span>Sửa chữa</span>
-                        <span>10</span>
-                        <span>đ̲20.000</span>
-                        <span>đ̲200.000</span>
+                        <span>{WORKER_address}</span>
+                        <span>{jobTypeMapping[dataBookingOrder.jobTypeID]}</span>
+                        <span>{dataBookingOrder.totalHours}</span>
+                        <span>{dataBookingOrder.hourlyRate}</span>
+                        <span>{dataBookingOrder.totalAmount}</span>
                     </div>
                 </div>
             </div>
@@ -278,22 +394,21 @@ const OrderTracking = () => {
             <div className='margin-box'></div>
             
             {isBoxCompleted && !isCompleted && (
-
-                    <div className="modal-overlay">
-                        <div className="modal-content">
-                            <>
-                            <h3>Xác nhận công việc đã hoàn thành</h3>
-                            <div className="modal-buttons">
-                            <button className="confirm-button" onClick={handleConfirmJob}>
-                                Xác nhận
-                            </button>
-                            <button className="cancel-button" onClick={handleCloseModal}>
-                                Hủy
-                            </button>
-                            </div>
-                            </>
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <>
+                        <h3>Xác nhận công việc đã hoàn thành</h3>
+                        <div className="modal-buttons">
+                        <button className="confirm-button" onClick={handleConfirmJob}>
+                            Xác nhận
+                        </button>
+                        <button className="cancel-button" onClick={handleCloseModal}>
+                            Hủy
+                        </button>
                         </div>
+                        </>
                     </div>
+                </div>
             )};
 
 

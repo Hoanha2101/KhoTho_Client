@@ -1,28 +1,40 @@
-/* Các thuộc tính chung cho ô nhập */
+/* Common styles for input fields */
 .input-container {
-    margin-bottom: 1rem; /* Khoảng cách dưới mỗi ô nhập */
-  }
-  
-  .input-label {
-    font-size: 1rem; /* Kích thước font cho label */
-    font-weight: 500; /* Đậm */
-    color: #333; /* Màu chữ */
-  }
-  
-  .input-field {
-    width: 100%; /* Chiều rộng 100% */
-    padding: 0.5rem; /* Khoảng cách bên trong */
-    border: 1px solid #ccc; /* Đường viền */
-    border-radius: 0.375rem; /* Bo góc */
-    transition: border-color 0.3s; /* Hiệu ứng chuyển đổi khi hover */
-  }
-  
-  .input-field:focus {
-    border-color: #007bff; /* Màu viền khi ô nhập được chọn */
-    outline: none; /* Bỏ outline */
-  }
-  
-  .input-field::placeholder {
-    color: #aaa; /* Màu chữ cho placeholder */
-  }
-  
+  margin-bottom: 1rem; /* Space below each input */
+}
+
+.input-label {
+  font-size: 1rem; /* Font size for label */
+  font-weight: 500; /* Bold */
+  color: #333; /* Text color */
+}
+
+.input-field {
+  width: 100%; /* Full width */
+  padding: 0.5rem; /* Padding inside */
+  border: 1px solid #ccc; /* Border */
+  border-radius: 0.375rem; /* Rounded corners */
+  transition: border-color 0.3s; /* Transition effect on hover */
+}
+
+.input-field:focus {
+  border-color: #007bff; /* Border color when focused */
+  outline: none; /* Remove outline */
+}
+
+.input-field::placeholder {
+  color: #aaa; /* Placeholder text color */
+}
+
+/* Login.css and Register.css */
+
+.login-page, .register-page {
+  background-image: url('../../Assets/bgr-login.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

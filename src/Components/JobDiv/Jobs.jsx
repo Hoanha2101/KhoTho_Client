@@ -3,6 +3,8 @@ import { BiTimeFive, BiStar } from 'react-icons/bi';
 import { MdVerified, MdLocationOn } from 'react-icons/md';
 import { BsBriefcase } from 'react-icons/bs';
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
+import { API_ENDPOINT } from "../../services/config";
+
 
 const Jobs = () => {
   const [workers, setWorkers] = useState([]);
@@ -12,7 +14,8 @@ const Jobs = () => {
 
   useEffect(() => {
     setLoading(true);
-    fetch('https://localhost:7062/api/Workers')
+    // use API_ENDPOINT instead of hardcoding the URL
+    fetch(`${API_ENDPOINT}/api/Workers`)
       .then(response => response.json())
       .then(data => {
         setWorkers(data);
